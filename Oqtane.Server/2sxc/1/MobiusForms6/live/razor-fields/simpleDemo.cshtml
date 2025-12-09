@@ -1,0 +1,11 @@
+@inherits Custom.Hybrid.RazorTyped
+@using ToSic.Razor.Blade
+@using AppCode.Data
+@{
+  var field = MyModel.Get<FormFieldConfig>("field");
+}
+<p>
+  Title: @field.String("Title") <br>
+  Open Advanced Example
+</p>
+

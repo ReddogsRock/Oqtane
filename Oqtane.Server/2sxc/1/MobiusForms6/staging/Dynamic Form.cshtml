@@ -1,0 +1,110 @@
+@* Inherit special Base Class which Prepares a lot of commonly used objects *@
+@inherits AppCode.Razor.DynamicFormBase
+@using ToSic.Razor.Blade
+@using ToSic.Sxc.Data
+@using AppCode
+@using AppCode.Data
+@using AppCode.Form
+@using AppCode.FormData
+@using AppCode.Razor
+
+@{
+  var formHelper = GetService<FormHelpers>();
+  var fieldsByGroup = GetFieldsInGroups();
+}
+
+@* Wrapper with main toolbar *@
+<div class="@WrapperClasses()" @formHelper.FormMobiusId() @FormToolbar()>
+  @* Show optional title *@
+  @if (FormConfig.IsNotEmpty("Title"))
+  {
+    <h2>@FormConfig.Title</h2>
+  }
+
+  <input type="hidden" id="FormId" value="@FormConfig.Id">
+
+  @* If we don't have any fields yet, show a placeholder so the user can add fields from the toolbar *@
+  @if (FormConfig.Fields.Count() == 0)
+  {
+    var toolbar = Kit.Toolbar.Default(FormConfig.Children("Fields"));
+    <div @toolbar class="alert alert-secondary" role="alert">
+      @AppRes.NoFieldsInfo
+    </div>
+  }
+
+  @* Loop through the field groups and render them *@
+  @foreach (var fieldGroup in fieldsByGroup)
+  {
+    var id = Kit.Key.UniqueKeyWith(fieldGroup.Key);
+    <div id="@id" class="mobius-group @fieldGroup.Key row" data-step="@fieldGroup.Key">
+      @foreach (var field in fieldGroup)
+      {
+        var colWidth = field.ColWidth > 1 ? field.ColWidth : 12;
+        <div class="col-@colWidth" @FieldToolbar(field)>
+          @* If it's a advanced field, use the custom razor - otherwise use FormBuilder from base class *@
+          @if (field.UseRazorComponent)
+          {
+            @Html.Partial("./razor-fields/" + field.RazorFile + ".cshtml", new { field })
+          }
+          else
+          {
+            @FormBuilder.Field(field)
+          }
+        </div>
+      }
+      @if (fieldsByGroup.Count > 1 && fieldGroup.Key != fieldsByGroup.Last().Key)
+      {
+        <div>
+          <a href="javascript:void(0)" class="btn btn-primary btn-mobius-next-step" data-id="@fieldGroup.Key">@FormRes.ButtonNextStep</a>
+        </div>
+      }
+    </div>
+  }
+
+  @* Recaptcha - if enabled *@
+  @if (FormConfig.Recaptcha)
+  {
+    @Html.Partial("./parts/Footer Recaptcha.cshtml")
+  }
+
+  @if (FormConfig.EnableMailchimp)
+  {
+    @Html.Partial("./parts/Mailchimp.cshtml")
+  }
+
+
+  @* Submit and hidden message divs to show when needed *@
+  @Html.Partial("./parts/Footer Submit with Messages.cshtml")
+
+  @* Buttons to see data (if available) *@
+  @if (MyUser.IsContentAdmin && !FormConfig.IsDemoItem)
+  {
+    // Initialize lists to store CSV-related data
+    var formData = GetService<FormDataService>().Setup(FormConfig.Id);
+    var dataPairs = formData.Data; // Initialize Data
+    <div class="alert alert-warning d-flex align-items-center gap-3 mt-2" role="alert">
+      Admin Info: @dataPairs.Count()
+      @if (dataPairs.Count() == 0)
+      {
+        @AppRes.LabelFromDataAvailable
+      }
+      else
+      {
+        var mid = MyContext.Module.Id;
+        <a class="btn btn-primary" href='@Link.To(parameters: $"data={FormConfig.Id}&mid={mid}")' target="_blank">@AppRes.BtnFormData</a>
+        <a class="btn btn-primary" href="@CsvHelper.GetDownloadLink(FormConfig.Id)" type="button" target="_blank">@AppRes.BtnCSVExport</a>
+      }
+    </div>
+  }
+</div>
+
+@Html.Partial("./parts/Assets.cshtml")
+
+@if(MyUser.IsContentAdmin)
+{
+  <style>
+    .app-mobius6-wrapper .mobius-group {
+      display: flex !important;
+    }
+  </style>
+}

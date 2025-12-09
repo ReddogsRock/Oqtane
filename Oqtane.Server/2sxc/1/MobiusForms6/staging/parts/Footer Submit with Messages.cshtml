@@ -1,0 +1,59 @@
+@* Inherit special Base Class which Prepares a lot of commonly used objects *@
+@inherits AppCode.Razor.MobiusRazorBase
+@using ToSic.Razor.Blade;
+@using ToSic.Sxc.Data;
+
+@using AppCode.Data
+
+<!-- form error messages, invisible at first -->
+<div class="app-mobius6-messages">
+  @HiddenMessage(AppRes.MessageRecaptchaMissing, "danger", "msgRecap")
+  @HiddenMessage(FormRes.MessageFormIncomplete, "danger", "msgIncomplete")
+  @HiddenMessage(FormRes.MessageSendError, "danger", "msgError")
+  @HiddenMessage(FormRes.MessageSending, "warning", "msgSending")
+  @HiddenMessage(FormRes.MessageNewsletterSuccess, "success", "msgNewsletterSuccess")
+  @HiddenMessage(FormRes.MessageNewsletterUnexpectedError, "danger", "msgNewsletterFailed")
+
+  <div id="msgOk" class="alert alert-success app-mobius6-message" role="alert">
+    @Html.Raw(FormRes.MessageSendOk)
+    @Html.Raw(MailConfig.CustomerSend ? FormRes.MessageCustomerMailSend : "")
+  </div>
+
+  @* Prepared messages for admin only *@
+  @if (MyUser.IsContentAdmin)
+  {
+    if ((MailConfig.CustomerSend || MailConfig.OwnerSend) && !Text.Has(MailConfig.MailFrom) &&
+    !AppSet.IsNotEmpty("DefaultMailFrom"))
+    {
+      <div class="alert alert-warning">
+        @Html.Raw(Kit.Scrub.Only(FormRes.MessageMailFromError, "p"))
+      </div>
+    }
+
+    if (MailConfig.OwnerSend && !Text.Has(MailConfig.OwnerMail) && !AppSet.IsNotEmpty("DefaultOwnerMail"))
+    {
+      <div class="alert alert-warning">
+        @Html.Raw(Kit.Scrub.Only(FormRes.MessageMailOwnerError, "p"))
+      </div>
+    }
+  }
+</div>
+
+<button disabled="@FormConfig.IsDemoItem" app-mobius6-send type="button" class="btn btn-primary">@FormRes.Button</button>
+
+@if(MyUser.IsContentAdmin && FormConfig.IsDemoItem){
+  <div class="alert alert-warning mt-2" role="alert">
+    @AppRes.MessageDemoItem
+  </div>
+}
+
+@functions {
+  IHtmlTag HiddenMessage(string message, string type = "warning", string id = "", string attribute = "")
+  {
+    var classes = "alert alert-" + type + " app-mobius6-message";
+    var rawMessage = Kit.Scrub.Only(message, "p");
+    var messageDiv = Kit.HtmlTags.Div(rawMessage).Class(classes).Id(id).Attr("role", "alert");
+    if (attribute != "") { messageDiv.Attr(attribute, ""); }
+    return messageDiv;
+  }
+}

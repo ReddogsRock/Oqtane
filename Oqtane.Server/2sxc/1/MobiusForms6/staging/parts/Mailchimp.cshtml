@@ -1,0 +1,25 @@
+@* Inherit special Base Class which Prepares a lot of commonly used objects *@
+@inherits AppCode.Razor.MobiusRazorBase
+
+@using AppCode.Data
+
+@* Exit if not editor, as this file only adds messages for the editor *@
+@if (!MyUser.IsContentAdmin)
+{
+  return;
+}
+
+@if (AppSet.MailchimpShowWarning)
+{
+  @* Show mailchimp default settings message *@
+  <div class="alert alert-warning">
+    @Html.Raw(Kit.Scrub.Only(AppRes.MessageDefaultMailchimpKey, "p"))
+  </div>
+}
+else
+{
+  @* Show mailchimp-enabled message *@
+  <div class="alert alert-warning">
+    @Html.Raw(Kit.Scrub.Only(AppRes.MessageContainsMailchimp, "p"))
+  </div>  
+}
