@@ -1,0 +1,20 @@
+@inherits AppCode.Razor.LinksRazor
+@using AppCode.Data
+
+<div class="row">
+  @foreach (var link in MyLinks)
+  {
+    <div class="mb-4 col-12 col-md-6 col-lg-4 co-linkblock" @Kit.Toolbar.Default(link)>
+      <h4>@link.Title</h4>
+      @link.DescriptionHtml(true)
+
+      @if (link.IsNotEmpty("Link")) {
+        <a href='@link.Link' target='@link.WindowAuto' title="@link.Title" class="stretched-link">@link.Get("LinkText")
+          <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </a>
+      }
+    </div>
+  }
+</div>
+
+@Html.Partial("../shared/Assets.cshtml", new { parts = "scripts,icons"})

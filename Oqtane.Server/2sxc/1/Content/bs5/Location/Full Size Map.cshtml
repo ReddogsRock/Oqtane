@@ -1,0 +1,10 @@
+@inherits AppCode.Razor.LocationRazor
+
+<div class="app-content-js-google-map-container position-relative" @Kit.Toolbar.Default(MyLocation)>
+  <div class="embed-responsive-item ratio ratio-21x9" id="@GoogleMapsDomId"></div>
+  @ShowWarningIfKeyMissing()
+</div>
+
+@Html.Partial("../shared/Assets.cshtml", new { parts = "scripts,icons"})
+
+@ActivateMap()

@@ -1,0 +1,47 @@
+@inherits AppCode.Razor.ImagesRazor
+@using ToSic.Razor.Blade
+@using AppCode
+@using AppCode.Data
+@{
+  // Determine the widths of each part, based on 12 Bootstrap Cols
+  var columns = 12 / MyView.Settings.MaxPerRow;
+  var factor = 1f / MyView.Settings.MaxPerRow; // percentage of the content-width
+  
+  // define dom attribute for fancybox
+  var fancyboxAttribute = "app-content-fancybox-" + UniqueKey; 
+}
+
+<div class="row">
+  @foreach (var imgItem in MyImages)
+  {
+    var pic = imgItem.Picture("Image", settings: "Content", factor: factor, imgClass: "w-100", imgAltFallback: imgItem.Title);
+
+    var useLightbox = imgItem.Presentation.UseLightbox;
+    var picLb = useLightbox ? imgItem.Picture("Image", settings: "Lightbox") : null;
+    var caption = useLightbox && imgItem.Presentation.TitleLightbox ? pic.Alt : "";
+
+    <div class='@(columns > 10 ? "col-12" : "col-12 col-sm-6") col-lg-@columns py-3' @Kit.Toolbar.Default(imgItem)>
+
+      @* If we use a lightbox, we have to wrap it inside a link *@
+      @if (useLightbox) {
+        @:<a @fancyboxAttribute data-src='@imgItem.Image' data-srcset="@picLb.SrcSet" data-sizes="@picLb.Sizes" data-preload="false" data-caption="@caption">
+      }
+      
+      <figure class='@(useLightbox ? "effect-zoom" : "") mb-0'>
+        @if (imgItem.Presentation.TitleLegend) {
+          <figcaption class="pt-1 px-3 px-md-4 pb-3 pb-md-4 text-white">@pic.Alt</figcaption>
+        }
+        @pic
+      </figure>
+
+      @if (useLightbox) {
+        @:</a>
+      }
+
+    </div>
+  }
+</div>
+
+@Html.Partial("../shared/Assets.cshtml", new { parts = "scripts" })
+
+@ActivateFancyBox(fancyboxAttribute)

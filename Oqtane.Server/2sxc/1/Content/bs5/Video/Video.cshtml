@@ -1,0 +1,41 @@
+@inherits AppCode.Razor.VideoRazor
+@using ToSic.Razor.Blade
+@using AppCode
+@using AppCode.Data
+@using AppCode.Razor
+
+@* This Template is used in ca. 5 Views which show title, text and video *@
+
+@* Show list header if necessary for configuration *@
+@Html.Partial("../shared/Content List Header.cshtml")
+
+@{
+  var settings = MyView.Settings;
+}
+  
+@* Show all the content-items - one or more *@
+@foreach (var item in Helpers.PrepareList(MyVideos, MyHeader.AlternatePositions, settings.TextFirst))
+{
+  <div class='row @item.RowClass' @Kit.Toolbar.Default(item)>
+    <div class='col-md-@settings.ColsText order-md-@item.ImagePlacement'>
+      @Helpers.ShowTitle(item)
+
+      @* If the image doesn't have it's own column, its between title/text *@
+      @if (settings.ImgIsBetweenTitleAndText) {
+        @Html.Partial("Video.Part-Playback.cshtml", new VideoModel { Columns = 12, Video = item })
+      }
+
+      @item.Html("Text", toolbar: false)
+    </div>
+
+    @* If the image has it's own column, it's here *@
+    @if (!settings.ImgIsBetweenTitleAndText)
+    {
+      <div class='col-md-@settings.ColsMedia order-md-@item.TextPlacement'>
+        @Html.Partial("Video.Part-Playback.cshtml", new VideoModel { Columns = settings.ColsMedia, Video = item })
+      </div>
+    }
+  </div>
+}
+
+@Html.Partial("../shared/Assets.cshtml", new { parts = "icons, scripts" })
